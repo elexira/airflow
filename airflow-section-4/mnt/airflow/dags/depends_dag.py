@@ -21,10 +21,12 @@ def third_task():
 with DAG(dag_id='depends_task', schedule_interval="0 0 * * *", default_args=default_args) as dag:
     
     # Task 1
-    bash_task_1 = BashOperator(task_id='bash_task_1', bash_command="echo 'first task'")
+    # the task fails if in the previous dag run the next task was failed
+    bash_task_1 = BashOperator(task_id='bash_task_1', bash_command="echo 'first task'", wait_for_downstream=True)
     
     # Task 2
-    python_task_2 = PythonOperator(task_id='python_task_2', python_callable=second_task)
+    # task fails if in the previous dag the same task was failed
+    python_task_2 = PythonOperator(task_id='python_task_2', python_callable=second_task, depends_on_past=True)
 
     # Task 3
     python_task_3 = PythonOperator(task_id='python_task_3', python_callable=third_task)
